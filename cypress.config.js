@@ -3,7 +3,7 @@ const {tagify} = require('cypress-tags');
 const fs = require('fs');
 const envConfig = fs.existsSync('./cypress.env.json') ? require('./cypress.env.json') : {};
 
-// Run "NODE_ENV=develop; npx cypress run" to run tests locally
+// Run "NODE_ENV=develop npx cypress run" to run tests locally
 const defaultBaseUrl = process.env.NODE_ENV === 'develop' ? 'http://cypress.magento2.localhost' : 'https://example.com/';
 
 // Sometimes our local envs are slow due to dev mode. Raising the timeout decreases flakiness
@@ -26,7 +26,6 @@ module.exports = defineConfig({
         specSuite: process.env.CYPRESS_MAGENTO2_SPEC_SUITE || envConfig.MAGENTO2_SPEC_SUITE || undefined,
         excludeSpecPattern: process.env.CYPRESS_MAGENTO2_EXCLUDE_PATTERN || envConfig.MAGENTO2_EXCLUDE_PATTERN || '',
         defaultCommandTimeout: parseInt(process.env.CYPRESS_MAGENTO2_DEFAULT_TIMEOUT || envConfig.MAGENTO2_DEFAULT_TIMEOUT || defaultCommandTimeout),
-        videoUploadOnPasses: !!(process.env.CYPRESS_VIDEO_UPLOAD_ON_PASSES || envConfig.VIDEO_UPLOAD_ON_PASSES || false),
         watchForFileChanges: false,
         supportFile: 'cypress/support/index.js',
         viewportWidth: 1920,
@@ -56,6 +55,15 @@ module.exports = defineConfig({
             })
 
             on('file:preprocessor', tagify(config))
+
+            on('task', {
+                axetable(message) {
+                    console.table(message, ['impact', 'description', 'nodes'] );
+                    console.log("Details")
+                    console.log(message.map(m => `"${m.id}:" \n ${m.html}`).join('\n\n'));
+                    return null;
+                },
+            });
 
             const applySpecSuiteToSpecPattern = (config) => {
                 // If the specSuite is an empty string, add a trailing / to $SPEC_SUITE to avoid // in the pattern

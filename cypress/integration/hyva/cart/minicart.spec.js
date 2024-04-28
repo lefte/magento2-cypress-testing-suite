@@ -6,6 +6,7 @@ describe('Mini cart tests', () => {
         cy.visit(minicart.didiSportWatch)
         cy.get(selectors.addToCartButton).click()
         cy.get(selectors.miniCartButton).click()
+        cy.wait(250) // wait for slider to open
     })
 
     it('Can delete an item from the cart slider', () => {
@@ -31,24 +32,27 @@ describe('Mini cart tests', () => {
 
     it('Can navigate to the checkout with a link in the slider', () => {
         cy.get(selectors.miniCartCheckoutButton).click()
-        cy.get(selectors.pageTitle).should('contains.text', 'Checkout').should('be.visible')
+        cy.title().should('eq', 'Checkout')
     })
 
     it('Can open minicart slider', () => {
         cy.get(selectors.miniCartSlider).should('be.visible')
     })
 
-    it('Can change amount in the minicart', () => {
-        cy.get(selectors.miniCartSlider).within(() => {
-            cy.get(selectors.miniCartEditProductButton).click()
-        })
+    it(["minicart"], 'Can change quantity in the minicart', () => {
+        let min = Math.ceil(3);
+        let max = Math.floor(33);
+        let newQuantity = Math.floor(Math.random() * (max - min) + min);
+
+        cy.get(selectors.miniCartEditProductButton).click();
         cy.get(selectors.qtyInputField)
-          .type("{backspace}2{enter}")
-          .should("have.value", "2");
+          .clear()
+          .type(newQuantity.toString())
+          .should("have.value", newQuantity.toString());
         cy.get(selectors.addToCartButton).click()
         cy.get(selectors.miniCartButton).click()
         cy.get(selectors.productQty)
-          .should('have.text', '2')
+          .should('have.text', newQuantity.toString())
     })
 })
 
@@ -58,6 +62,7 @@ describe('Test without added product',() => {
         cy.get(selectors.addToCartButton).click()
         cy.get(selectors.productPrice).then(($productPrice) => {
             cy.get(selectors.miniCartButton).click()
+            cy.wait(250) // wait for slider to open
             const productPrice = $productPrice[0].textContent.trim().slice(1)
             cy.get(selectors.miniCartProductPrice).first().then(($productPrice2MiniCart) => {
                 const productPrice2MiniCart = $productPrice2MiniCart[0].textContent.trim().slice(1)
